@@ -1,0 +1,814 @@
+#+TITLE: Emacs Configuration
+#+AUTHOR: Yuri Abzyanov
+
+This is the configuration file for emacs in ORG format. It allows storing configuration
+together with explanation of each config.
+Shamelessly stolen from [[https://github.com/danielmai/.emacs.d][here]]
+
+* Installing Emacs
+
+On OS X, [[http://brew.sh/][homebrew]] is an easy way to install emacs.
+
+Here's what the parameter means.
+- ~--with-cocoa~ :: installs emacs with the OS X GUI version
+- ~--with-imagemagick~ :: installs emacs with imagemagick support for image processing
+- ~--with-gnutls~ :: installs emacs with GnuTLS to utilize encrypted SSL and TLS connections
+
+#+begin_src sh
+brew install emacs --with-cocoa --with-imagemagick --with-gnutls
+#+end_src
+
+* Personal Information
+
+#+begin_src emacs-lisp
+(setq user-full-name "Yuri Abzyanov"
+      user-mail-address "yuri_abzyanov@fastmail.fm")
+#+end_src
+
+* Preconfig
+** Initialize packages
+
+#+begin_src emacs-lisp
+(require 'package)
+(add-to-list 'package-archives
+             '("melpa" . "http://melpa.org/packages/") t)
+(package-initialize)
+
+(when (not package-archive-contents)
+  (package-refresh-contents))
+#+end_src
+
+*** Bootstrap use-package
+
+Install use-package if it's not already installed.
+use-package is used to configure the rest of the packages.
+
+#+begin_src emacs-lisp
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
+
+(eval-when-compile
+  (require 'use-package))
+#+end_src
+  
+* Theme
+** Cyberpunk theme
+
+The [[https://github.com/n3mo/cyberpunk-theme.el][cyberpunk theme]] is dark and colorful.
+
+#+begin_src emacs-lisp
+(use-package cyberpunk-theme
+  :ensure t)
+#+end_src
+
+** Spacegray theme
+
+#+begin_src emacs-lisp
+(use-package spacegray-theme
+  :ensure t
+  :init
+  (load-theme 'spacegray t))
+#+end_src
+
+** Convenient theme functions
+
+#+begin_src emacs-lisp
+(defun switch-theme (theme)
+  "Disables any currently active themes and loads THEME."
+  ;; This interactive call is taken from `load-theme'
+  (interactive
+   (list
+    (intern (completing-read "Load custom theme: "
+                             (mapc 'symbol-name
+                                   (custom-available-themes))))))
+  (let ((enabled-themes custom-enabled-themes))
+    (mapc #'disable-theme custom-enabled-themes)
+    (load-theme theme t)))
+
+(defun disable-active-themes ()
+  "Disables any currently active themes listed in `custom-enabled-themes'."
+  (interactive)
+  (mapc #'disable-theme custom-enabled-themes))
+
+(bind-key "s-<f12>" 'switch-theme)
+(bind-key "s-<f11>" 'disable-active-themes)
+#+end_src
+
+* Common config
+** Config folder
+
+I store my confifuration files in subfolder in .emacs.d folder
+#+begin_src emacs-lisp
+(add-to-list 'load-path (expand-file-name "my-cfg" user-emacs-directory))
+#+end_src
+
+** Backups folder
+
+Emacs by default saves backups in the current directory (which is usually the directory
+where file is located). This creates a lot of unnecessary files, so just change
+backup folder to something in .emacs.d
+
+#+begin_src emacs-lisp
+(setq backup-directory-alist '(("." . "~/.emacs.d/backups")))
+#+end_src
+
+** Change yes/no to y/n
+
+#+begin_src emacs-lisp
+(fset 'yes-or-no-p 'y-or-n-p)
+#+end_src
+
+** Sane defaults
+*** UTF-8
+
+Use UTF-8 in all contexts (wouldn't work in Windows, which is fine with me)
+
+#+begin_src emacs-lisp
+(setq locale-coding-system 'utf-8)
+(set-terminal-coding-system 'utf-8)
+(set-keyboard-coding-system 'utf-8)
+(set-selection-coding-system 'utf-8)
+(prefer-coding-system 'utf-8)
+(when (display-graphic-p)
+  (setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING)))
+#+end_src
+
+*** Initial screen
+
+#+begin_src emacs-lisp
+;(setq initial-buffer-choice "~/.emacs.d/my-cfg/config.org")
+#+end_src
+
+*** Global clipboard
+
+#+begin_src emacs-lisp
+(setq x-select-enable-clipboard t)
+#+end_src
+
+*** Line numbers enabled by default
+
+#+begin_src emacs-lisp
+(require 'linum)
+(line-number-mode t)
+(global-linum-mode t)
+(column-number-mode t)
+#+end_src
+
+*** Do not indent with tabs
+
+#+begin_src emacs-lisp
+(setq-default indent-tabs-mode nil)
+#+end_src
+
+*** Do not blink cursor
+
+#+begin_src emacs-lisp
+(blink-cursor-mode 0)
+#+end_src
+
+*** Some auxiliary settings
+
+#+begin_src emacs-lisp
+;; Display file size/time in mode-line
+(setq display-time-24hr-format t)
+(display-time-mode             t)
+(size-indication-mode          t)
+#+end_src
+
+** Key-bindings
+
+#+begin_src emacs-lisp
+(global-set-key (kbd "C-x C-b") 'ibuffer)
+(global-set-key (kbd "RET") 'newline-and-indent)
+(global-set-key (kbd "C-s") 'isearch-forward-regexp)
+(global-set-key (kbd "C-r") 'isearch-backward-regexp)
+(global-set-key (kbd "C-M-s") 'isearch-forward)
+(global-set-key (kbd "C-M-r") 'isearch-forward)
+(autoload 'zap-up-to-char "misc"
+  "Kill up to, but not including ARGth occurrence of CHAR." t)
+(global-set-key (kbd "M-z") 'zap-up-to-char)
+(global-set-key (kbd "M-/") 'hippie-expand)
+;; windmove
+(global-set-key (kbd "M-s-<right>") 'windmove-right)
+(global-set-key (kbd "M-s-<left>") 'windmove-left)
+(global-set-key (kbd "M-s-<up>") 'windmove-up)
+(global-set-key (kbd "M-s-<down>") 'windmove-down)
+#+end_src
+
+*** Open line down
+
+Similar to "o" in vi.
+
+#+begin_src emacs-lisp
+(defun open-line-down ()
+  "Add new line after current line and go to the beginning of new line. Respects indentation"
+  (interactive)
+  (move-end-of-line nil)
+  (newline-and-indent))
+(global-set-key (kbd "C-o") 'open-line-down)
+(global-set-key (kbd "C-S-o") 'open-line)
+#+end_src
+
+** Font
+
+Font is different on each OS type. I set it for OSX and Ubuntu (Linux)
+#+begin_src emacs-lisp
+(cond
+ ((string-equal system-type "darwin") ; Mac OS X
+  (when (member "Monaco" (font-family-list))
+    (add-to-list 'initial-frame-alist '(font . "Monaco-13"))
+    (add-to-list 'default-frame-alist '(font . "Monaco-13"))))
+ ((string-equal system-type "gnu/linux") ; linux
+  (when (member "Ubuntu Mono" (font-family-list))
+    (add-to-list 'initial-frame-alist '(font . "Ubuntu Mono-12"))
+    (add-to-list 'default-frame-alist '(font . "Ubuntu Mono-12")))))
+#+end_src
+
+** Apropos
+
+#+begin_src emacs-lisp
+(setq apropos-do-all t)
+#+end_src
+
+** Repl
+
+Alias for Emacs REPL
+
+#+begin_src emacs-lisp
+(defun repl() (interactive) (ielm))
+#+end_src
+
+** Undo tree mode - visualize your undos and branches
+
+Stolen from here: [[https://github.com/sachac/.emacs.d/][repo]]
+
+People often struggle with the Emacs undo model, where there's really no concept of "redo" - you simply undo the undo.
+
+This lets you use C-x u (undo-tree-visualize) to visually walk through the changes you've made, undo back to a certain point (or redo), and go down different branches.
+
+#+begin_src emacs-lisp
+(use-package undo-tree
+  :ensure t
+  :config
+  (progn
+    (global-undo-tree-mode)
+    (setq undo-tree-visualizer-timestamps t)
+    (setq undo-tree-visualizer-diff t)))
+#+end_src
+
+** Deleted files go to trash
+
+#+begin_src emacs-lisp
+(setq delete-by-moving-to-trash t)
+#+end_src
+   
+* Mac-specific configuration
+
+Should do this before all other configuration as issues it fixes can cause troubles in other configurations
+  
+** Fix for shell
+
+Fixes path for Emacs in Mac OSX
+   
+#+begin_src emacs-lisp
+(use-package exec-path-from-shell
+  :if (memq window-system '(mac ns))
+  :ensure t
+  :init
+  (exec-path-from-shell-initialize))
+#+end_src
+
+** Window width and height
+
+Default width and height - maximized on MacBook Pro 15"
+
+#+begin_src emacs-lisp
+(defun custom-set-frame-size ()
+  (add-to-list 'default-frame-alist '(height . 49))
+  (add-to-list 'default-frame-alist '(width . 177)))
+(custom-set-frame-size)
+(add-hook 'before-make-frame-hook 'custom-set-frame-size)
+#+end_src
+
+** Remap Control, Option and Command
+
+#+begin_src emacs-lisp
+(setq mac-option-modifier 'meta)
+(setq mac-command-modifier 'super)
+(setq ns-function-modifier 'hyper)
+#+end_src
+
+** Scrolling in OSX
+
+#+begin_src emacs-lisp
+(setq mouse-wheel-scroll-amount (quote (0.01)))
+#+end_src
+   
+* Org
+** Agenda configuration
+*** Files configuration
+Org agenda will read TODO items from them all
+
+#+begin_src emacs-lisp
+(setq org-agenda-show-all-dates t)
+(setq org-agenda-start-on-weekday nil)
+(setq org-agenda-skip-deadline-if-done nil) ; need this for EOD
+(setq org-agenda-sorting-strategy '((agenda habit-down time-up priority-down category-keep)
+				    (todo priority-down category-keep)
+				    (tags priority-down category-keep)
+				    (search category-keep)))
+(setq org-agenda-overriding-columns-format "%CATEGORY %25ITEM %3PRIORITY %TODO %TAGS")
+(setq org-reverse-note-order t)
+
+(setq org-agenda-custom-commands
+      (quote (("d" todo "DELEGATED" nil)
+	      ("c" todo "DONE|DEFERRED|CANCELLED" nil)
+	      ("w" todo "WAITING" nil)
+	      ("W" agenda "" ((org-agenda-ndays 21)))
+	      ("A" agenda ""
+	       ((org-agenda-skip-function
+		 (lambda nil
+		   (org-agenda-skip-entry-if 'notregexp "\\=.*\\[#A\\]")))
+		(org-agenda-ndays 1)
+		(org-agenda-overriding-header "Today's Priority #A tasks: ")))
+	      ("u" alltodo ""
+	       ((org-agenda-skip-function
+		 (lambda nil
+		   (org-agenda-skip-entry-if 'scheduled 'deadline
+					     'regexp "\n]+>")))
+		(org-agenda-overriding-header "Unscheduled TODO entries: "))))))
+
+#+end_src
+
+** Key bindings
+#+begin_src emacs-lisp
+(global-set-key "\C-cl" 'org-store-link)
+(global-set-key "\C-ca" 'org-agenda)
+(global-set-key "\C-cb" 'org-iswitchb)
+(global-set-key "\C-cc" 'org-capture)
+#+end_src
+
+** Org bullets
+Cool package, which changes how bullets look for multi-level org headers.
+
+#+begin_src emacs-lisp
+(use-package org-bullets
+  :ensure t
+  :init
+  (setq org-bullets-bullet-list '("◉" "◎" "⚫" "○" "►" "◇"))
+  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+#+end_src
+
+** Export backends
+
+#+begin_src emacs-lisp
+(use-package ox-rst
+  :ensure t)
+#+end_src
+
+#+begin_src emacs-lisp
+(setq org-export-backends '(ascii html icalendar latex md rst))
+#+end_src
+
+** Org babel languages
+
+#+begin_src emacs-lisp
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((python . t)
+   (C . t)
+   (calc . t)
+   (latex . t)
+   (java . t)
+   (ruby . t)
+   (scheme . t)
+   (sh . t)
+   (sqlite . t)
+   (js . t)))
+
+(defun my-org-confirm-babel-evaluate (lang body)
+  "Do not confirm evaluation for these languages."
+  (not (or (string= lang "C")
+           (string= lang "java")
+           (string= lang "python")
+           (string= lang "emacs-lisp")
+           (string= lang "sqlite"))))
+(setq org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate)
+#+end_src
+
+** Org babel/source blocks
+
+Shamelessly stolen from here: [[https://github.com/danielmai/.emacs.d/blob/master/config.org][repo]]
+
+Citation:
+>> I like to have source blocks properly syntax highlighted and with the
+>> editing popup window staying within the same window so all the windows
+>> don't jump around. Also, having the top and bottom trailing lines in
+>> the block is a waste of space, so we can remove them.
+>> 
+>> I noticed that fontification doesn't work with markdown mode when the
+>> block is indented after editing it in the org src buffer---the leading
+>> #s for headers don't get fontified properly because they appear as Org
+>> comments. Setting ~org-src-preserve-indentation~ makes things
+>> consistent as it doesn't pad source blocks with leading spaces.
+
+#+begin_src emacs-lisp
+(setq org-src-fontify-natively t
+      org-src-window-setup 'current-window
+      org-src-strip-leading-and-trailing-blank-lines t
+      org-src-preserve-indentation t
+      org-src-tab-acts-natively t)
+#+end_src
+   
+* Completion
+
+For completion I use company mode
+
+#+begin_src emacs-lisp
+(use-package company
+  :ensure t
+  :init
+  (company-mode 1)
+  (add-hook 'after-init-hook 'global-company-mode)
+  (global-set-key (kbd "C-t") 'company-complete)
+  (setq company-idle-delay 0.1)
+  (setq company-selection-wrap-around t)
+  (setq company-show-numbers t))
+#+end_src
+
+* Programming
+** Common settings
+*** Better work navigation through CamelCase and under_score_case
+
+#+begin_src emacs-lisp
+(subword-mode +1)
+#+end_src
+
+*** Electric modes
+#+begin_src emacs-lisp
+(electric-pair-mode 1)
+(electric-indent-mode -1)
+#+end_src
+
+** Python
+*** Elpy
+
+#+begin_src emacs-lisp
+(use-package elpy
+  :ensure t
+  :init
+  (elpy-enable)
+  (elpy-use-ipython))
+#+end_src
+
+*** Pymacs
+
+#+begin_src emacs-lisp
+(autoload 'pymacs-apply "pymacs")
+(autoload 'pymacs-call "pymacs")
+(autoload 'pymacs-eval "pymacs" nil t)
+(autoload 'pymacs-exec "pymacs" nil t)
+(autoload 'pymacs-load "pymacs" nil t)
+(autoload 'pymacs-autoload "pymacs")
+#+end_src
+
+*** Python manual
+
+#+begin_src emacs-lisp
+(use-package python-info)
+(use-package python3-info)
+#+end_src
+    
+*** Common python settings
+
+#+begin_src emacs-lisp
+(setq python-shell-interpreter "ipython"
+      python-shell-interpreter-args "-i")
+#+end_src
+
+*** Emacs IPython Notebook
+
+#+begin_src emacs-lisp
+(use-package ein
+  :ensure t)
+#+end_src
+
+** Slime
+
+#+begin_src emacs-lisp
+(use-package slime
+  :ensure t
+  :init
+  (setq slime-lisp-implementations
+        '((sbcl ("/usr/local/bin/sbcl") :coding-system utf-8-unix)
+          (clisp ("/usr/local/bin/clisp") :coding-system utf-8-unix)
+          (clozure ("/usr/local/bin/ccl64") :coding-system utf-8-unix)))
+  (setq inferior-lisp-program "/usr/local/bin/sbcl"))
+#+end_src
+
+Contrib packages.
+
+#+begin_src emacs-lisp
+(require 'slime-autoloads)
+(add-to-list 'slime-contribs 'slime-fancy)
+(add-to-list 'slime-contribs 'slime-indentation)
+#+end_src
+
+** Go
+   Mode for Go lang programming
+
+#+begin_src emacs-lisp
+(use-package go-mode
+  :ensure t)
+#+end_src
+   
+** Mercurial
+
+Monky package
+
+#+begin_src emacs-lisp
+(use-package monky
+  :ensure t
+  :init
+  (setq monky-process-type 'cmdserver)
+  (global-set-key (kbd "C-x C-v") 'monky-status))
+#+end_src
+
+** Git
+
+Magit package
+
+#+begin_src emacs-lisp
+(use-package magit
+  :ensure t
+  :init
+  (global-set-key (kbd "C-x g s") 'magit-status)
+  (global-set-key (kbd "C-x g p") 'magit-dispatch-popup))
+#+end_src
+
+** Subword
+
+Improve navigation through CamelCase
+
+#+begin_src emacs-lisp
+(subword-mode t)
+#+end_src
+
+** Idle highlight
+
+Highlights symbol under the cursor
+
+#+begin_src emacs-lisp
+(use-package idle-highlight-mode
+  :ensure t
+  :init
+  (setq idle-highlight-idle-time 0.001)
+  (defun idle-coding-hook ()
+    (make-local-variable 'column-number-mode)
+    (column-number-mode t)
+    (show-paren-mode 1)
+    (delete-selection-mode)
+    ;; (if window-system (hl-line-mode t))
+    (idle-highlight-mode t))
+  (add-hook 'python-mode-hook 'idle-coding-hook)
+  (add-hook 'emacs-lisp-mode-hook 'idle-coding-hook)
+  (add-hook 'ruby-mode-hook 'idle-coding-hook)
+  (add-hook 'js2-mode-hook 'idle-coding-hook)
+  (add-hook 'cl-mode-hook 'idle-coding-hook)
+  (add-hook 'c-mode-hook 'idle-coding-hook)
+  (add-hook 'lisp-mode-hook 'idle-coding-hook))
+#+end_src
+
+** Find-file-in-repository
+
+#+begin_src emacs-lisp
+(use-package find-file-in-repository
+  :ensure t
+  :init
+  (global-set-key (kbd "C-x f") 'find-file-in-repository))
+#+end_src
+
+** Neotree
+
+#+begin_src emacs-lisp
+(use-package neotree
+  :ensure t
+  :init
+  (global-set-key [f8] 'neotree-toggle)
+  ;; Every time when the neotree window is opened, let it find current file and jump to node.
+  (setq neo-smart-open t))
+#+end_src
+
+   A hack to neotree to work in my set up in Ubuntu. Only change is "(window-frame nil)" instead of "(window-frame)".
+   Should review this after updating Emacs or Neotree
+
+#+begin_src emacs-lisp
+(defun neo-global--create-window ()
+  "Create global neotree window."
+  (let ((window nil)
+        (buffer (neo-global--get-buffer t))
+        (window-pos (if (eq neo-window-position 'left) 'left 'right)))
+    (setq window
+          (select-window
+           (split-window
+            (frame-root-window (window-frame nil)) nil window-pos)))
+    (neo-window--init window buffer)
+    (neo-global--attach)
+    (neo-global--reset-width)
+    window))
+#+end_src
+
+** Projectile
+Projectile is a popular package, which helps manage projects in Emacs.
+
+#+begin_src emacs-lisp
+(use-package projectile
+  :ensure t
+  :init
+  (projectile-global-mode)
+  ;; integrate with neotree
+  (setq projectile-switch-project-action 'projectile-find-file)
+  (use-package grizzl
+    :ensure t
+    :init
+    (setq projectile-completion-system 'grizzl)))
+#+end_src
+
+** Perspective
+
+This package provides tagged workspaces in Emacs, similar to workspaces in
+windows managers such as Awesome and XMonad (and somewhat similar to
+multiple desktops in Gnome or Spaces in OS X).
+
+It resembles Pycharm's contexts.
+
+#+begin_src emacs-lisp
+(use-package perspective
+  :ensure t
+  :init
+  (persp-mode)
+  (use-package persp-projectile
+    :ensure t
+    :init
+    (define-key projectile-mode-map (kbd "C-s-s") 'projectile-persp-switch-project)))
+#+end_src
+
+** Smartscan
+
+Quickly jumps between other symbols found at point in Emacs.
+
+<M-n> and <M-p> move between symbols and type <M-'> to replace all symbols in the buffer matching the one under point,
+and <C-u M-'> to replace symbols in your current defun only (as used by narrow-to-defun.)
+
+#+begin_src emacs-lisp
+(use-package smartscan
+  :ensure t
+  :init
+  (defun smartscan-coding-hook ()
+    (smartscan-mode t))
+  (add-hook 'org-mode-hook 'smartscan-coding-hook)
+  (add-hook 'python-mode-hook 'smartscan-coding-hook)
+  (add-hook 'emacs-lisp-mode-hook 'smartscan-coding-hook)
+  (add-hook 'ruby-mode-hook 'smartscan-coding-hook)
+  (add-hook 'js2-mode-hook 'smartscan-coding-hook)
+  (add-hook 'cl-mode-hook 'smartscan-coding-hook)
+  (add-hook 'c-mode-hook 'smartscan-coding-hook)
+  (add-hook 'lisp-mode-hook 'smartscan-coding-hook))
+#+end_src
+
+** Highligh TODO/FIXME/etc
+
+Highlighs "TODO" and other special words in comments and strings
+
+#+begin_src emacs-lisp
+(use-package hl-todo
+  :ensure t
+  :init
+  (defun hl-todo-coding-hook ()
+    (hl-todo-mode t))
+  (add-hook 'org-mode-hook 'hl-todo-coding-hook)
+  (add-hook 'python-mode-hook 'hl-todo-coding-hook)
+  (add-hook 'emacs-lisp-mode-hook 'hl-todo-coding-hook)
+  (add-hook 'ruby-mode-hook 'hl-todo-coding-hook)
+  (add-hook 'js2-mode-hook 'hl-todo-coding-hook)
+  (add-hook 'cl-mode-hook 'hl-todo-coding-hook)
+  (add-hook 'c-mode-hook 'hl-todo-coding-hook)
+  (add-hook 'lisp-mode-hook 'hl-todo-coding-hook))
+#+end_src
+   
+** Multi term
+
+Package allows creating several terminal buffers. Also, a bit better than stock "term" function
+
+#+begin_src emacs-lisp
+(use-package multi-term
+  :ensure t
+  :init
+  (setq multi-term-program "/usr/local/bin/bash")
+  (defun multi-term-dedicated-toggle-and-select ()
+    (interactive)
+    (if (multi-term-dedicated-exist-p)
+        (multi-term-dedicated-close)
+      (progn
+        (multi-term-dedicated-open)
+        (multi-term-dedicated-select))))
+  (global-set-key (kbd "C-x t t") 'multi-term-dedicated-toggle-and-select)
+  (global-set-key (kbd "C-x t v") 'multi-term-dedicated-toggle)
+  (global-set-key (kbd "C-x t s") 'multi-term-dedicated-select)
+  (global-set-key (kbd "C-x t n") 'multi-term)
+  (global-set-key (kbd "C-x t f") 'multi-term-next)
+  (global-set-key (kbd "C-x t b") 'multi-term-prev))
+#+end_src
+
+* Emacs Server
+
+I use Emacs to edit files from terminal. Emacs server allows to avoid starting up Emacs everytime.
+Instead it uses already running Emacs instance to start "Emacs client".
+Emacs client is basically new Emacs window (which can be even terminal-based window).
+It uses configuration and resources of Emacs server.
+
+More info [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Emacs-Server.html][here]]
+
+#+begin_src emacs-lisp
+(server-start)
+(x-focus-frame nil)
+#+end_src
+
+* IDO mode
+
+#+begin_src emacs-lisp
+(use-package flx-ido
+  :ensure t
+  :init
+  (ido-mode 1)
+  (ido-everywhere 1)
+  (flx-ido-mode 1)
+  (setq ido-enable-flex-matching t)
+  (setq ido-use-faces nil))
+#+end_src
+
+** Imenu-ido
+
+#+begin_src emacs-lisp
+(load "imenu-ido.el")
+(global-set-key (kbd "M-i") 'ido-goto-symbol)
+#+end_src
+
+* Packages
+
+The packages I use. The list is empty at the moment - each project has its own section in config
+  
+#+begin_src emacs-lisp
+(defvar myPackages
+  '(sicp))
+#+end_src
+
+Install myPackages.
+
+#+begin_src emacs-lisp
+(mapc #'(lambda (package)
+    (unless (package-installed-p package)
+      (package-install package)))
+      myPackages)
+#+end_src
+
+* Fixes to my specific system
+** Fix to rgrep due to "fish" shell being used
+
+#+begin_src emacs-lisp
+(setq grep-find-template "find . <X> -type f <F> -exec grep <C> -nH -e <R> '{}' +")
+#+end_src
+
+* Dired
+Following code makes commands "go to beginning of buffer" M-< and
+"got to end of buffer" M-> take to first and last file instead of
+going to the very beginning and the very end.
+
+#+begin_src emacs-lisp
+(require 'dired)  ; to avoid issue with dired not loaded yet
+
+(defun dired-back-to-top ()
+  (interactive)
+  (beginning-of-buffer)
+  (dired-next-line 4))
+
+(define-key dired-mode-map
+  (vector 'remap 'beginning-of-buffer) 'dired-back-to-top)
+
+(defun dired-jump-to-bottom ()
+  (interactive)
+  (end-of-buffer)
+  (dired-next-line -1))
+
+(define-key dired-mode-map
+  (vector 'remap 'end-of-buffer) 'dired-jump-to-bottom)
+#+end_src
+
+* Private configuration
+
+#+begin_src emacs-lisp
+(defvar private-org (expand-file-name "private.org" (expand-file-name "my-cfg" user-emacs-directory)))
+(org-babel-load-file private-org)
+#+end_src
+  
