@@ -184,6 +184,15 @@ Use UTF-8 in all contexts (wouldn't work in Windows, which is fine with me)
 (size-indication-mode          t)
 #+end_src
 
+*** Re-builder
+
+Use "string" regexp syntax for re-builder
+    
+#+begin_src emacs-lisp
+(require 're-builder)
+(setq reb-re-syntax 'string)
+#+end_src
+
 ** Key-bindings
 
 #+begin_src emacs-lisp
