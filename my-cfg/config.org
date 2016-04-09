@@ -234,8 +234,8 @@ Font is different on each OS type. I set it for OSX and Ubuntu (Linux)
 (cond
  ((string-equal system-type "darwin") ; Mac OS X
   (when (member "Monaco" (font-family-list))
-    (add-to-list 'initial-frame-alist '(font . "Monaco-13"))
-    (add-to-list 'default-frame-alist '(font . "Monaco-13"))))
+    (add-to-list 'initial-frame-alist '(font . "Source Code Pro-13"))
+    (add-to-list 'default-frame-alist '(font . "Source Code Pro-13"))))
  ((string-equal system-type "gnu/linux") ; linux
   (when (member "Ubuntu Mono" (font-family-list))
     (add-to-list 'initial-frame-alist '(font . "Ubuntu Mono-12"))
