@@ -267,6 +267,7 @@ This lets you use C-x u (undo-tree-visualize) to visually walk through the chang
 #+begin_src emacs-lisp
 (use-package undo-tree
   :ensure t
+  :diminish undo-tree-mode
   :config
   (progn
     (global-undo-tree-mode)
@@ -325,7 +326,6 @@ Default width and height - maximized on MacBook Pro 15"
 * Org
 ** Agenda configuration
 *** Files configuration
-Org agenda will read TODO items from them all
 
 #+begin_src emacs-lisp
 (setq org-agenda-show-all-dates t)
