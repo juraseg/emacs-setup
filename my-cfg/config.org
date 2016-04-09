@@ -66,10 +66,18 @@ The [[https://github.com/n3mo/cyberpunk-theme.el][cyberpunk theme]] is dark and 
 
 #+begin_src emacs-lisp
 (use-package spacegray-theme
+  :ensure t)
+#+end_src
+
+** Jazz theme
+
+#+begin_src emacs-lisp
+(use-package jazz-theme
   :ensure t
   :init
-  (load-theme 'spacegray t))
+  (load-theme 'jazz t))
 #+end_src
+
 
 ** Convenient theme functions
 
