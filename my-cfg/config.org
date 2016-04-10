@@ -448,7 +448,6 @@ For completion I use company mode
   :init
   (company-mode 1)
   (add-hook 'after-init-hook 'global-company-mode)
-  (global-set-key (kbd "C-t") 'company-complete)
   (setq company-idle-delay 0.1)
   (setq company-selection-wrap-around t)
   (setq company-show-numbers t))
@@ -755,21 +754,76 @@ More info [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Emacs-Serv
 * IDO mode
 
 #+begin_src emacs-lisp
-(use-package flx-ido
-  :ensure t
-  :init
-  (ido-mode 1)
-  (ido-everywhere 1)
-  (flx-ido-mode 1)
-  (setq ido-enable-flex-matching t)
-  (setq ido-use-faces nil))
+;(use-package flx-ido
+;  :ensure t
+;  :init
+;  (ido-mode 1)
+;  (ido-everywhere 1)
+;  (flx-ido-mode 1)
+;  (setq ido-enable-flex-matching t)
+;  (setq ido-use-faces nil))
 #+end_src
 
 ** Imenu-ido
 
 #+begin_src emacs-lisp
-(load "imenu-ido.el")
-(global-set-key (kbd "M-i") 'ido-goto-symbol)
+;(load "imenu-ido.el")
+;(global-set-key (kbd "M-i") 'ido-goto-symbol)
+#+end_src
+
+* Helm
+
+#+begin_src emacs-lisp
+(use-package helm-core
+  :ensure t
+  :init
+  (use-package helm
+    :ensure t)
+  (use-package helm-company
+    :ensure t)
+  (use-package helm-mt
+    :ensure t)
+  (use-package helm-projectile
+    :ensure t)
+  (use-package helm-pydoc
+    :ensure t)
+  (use-package helm-ls-git
+    :ensure t)
+  (use-package helm-ls-hg
+    :ensure t))
+
+(require 'helm-config)
+(helm-mode 1)
+(helm-adaptive-mode 1)
+(helm-push-mark-mode 1)
+(helm-popup-tip-mode 1)
+(helm-autoresize-mode 1)
+(define-key global-map [remap find-file] 'helm-find-files)
+(define-key global-map [remap occur] 'helm-occur)
+(define-key global-map [remap list-buffers] 'helm-buffers-list)
+(define-key global-map [remap dabbrev-expand] 'helm-dabbrev)
+(define-key global-map [remap execute-extended-command] 'helm-M-x)
+(define-key global-map [remap info-emacs-manual] 'helm-info-emacs)
+(global-set-key (kbd "M-i") 'helm-imenu)
+(global-set-key (kbd "C-x C-d") 'helm-browse-project)
+
+
+(setq helm-ls-git-status-command 'magit-status-internal
+      helm-apropos-fuzzy-match t
+      helm-M-x-fuzzy-match t
+      helm-lisp-fuzzy-completion t
+      helm-completion-in-region-fuzzy-match t
+      helm-imenu-fuzzy-match t
+      helm-recentf-fuzzy-match t
+      helm-buffers-fuzzy-matching t
+      helm-org-headings-fontify t)
+
+(eval-after-load 'company
+  '(progn
+     (define-key company-mode-map (kbd "C-t") 'helm-company)
+     (define-key company-active-map (kbd "C-t") 'helm-company)))
+
+(helm-projectile-on)
 #+end_src
 
 * Packages
