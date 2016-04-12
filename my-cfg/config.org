@@ -542,6 +542,35 @@ For completion I use company mode
 (electric-indent-mode -1)
 #+end_src
 
+*** Comments
+
+I'm used to comment line with one keystroke without selecting them.
+And when I want to comment region I want all lines in that region be
+commented, not only the region itself
+
+Source: http://stackoverflow.com/a/20064658/243392
+
+#+begin_src emacs-lisp
+(defun comment-eclipse ()
+  (interactive)
+  (let ((start (line-beginning-position))
+        (end (line-end-position)))
+    (when (region-active-p)
+      (setq start (save-excursion
+                    (goto-char (region-beginning))
+                    (beginning-of-line)
+                    (point))
+            end (save-excursion
+                  (goto-char (region-end))
+                  (end-of-line)
+                  (point))))
+    (comment-or-uncomment-region start end)
+    (next-line)))
+
+
+(global-set-key (kbd "M-;") 'comment-eclipse)
+#+end_src
+
 ** Python
 *** Elpy
 
