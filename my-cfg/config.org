@@ -335,7 +335,7 @@ Default width and height - maximized on MacBook Pro 15"
 				    (todo priority-down category-keep)
 				    (tags priority-down category-keep)
 				    (search category-keep)))
-(setq org-agenda-overriding-columns-format "%CATEGORY %25ITEM %3PRIORITY %TODO %TAGS")
+(setq org-agenda-overriding-columns-format "%CATEGORY %35ITEM %3PRIORITY %TODO %TAGS")
 (setq org-reverse-note-order t)
 
 (setq org-agenda-custom-commands
