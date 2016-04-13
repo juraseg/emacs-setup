@@ -51,7 +51,16 @@ use-package is used to configure the rest of the packages.
 (eval-when-compile
   (require 'use-package))
 #+end_src
-  
+
+** Diminish
+
+Install diminish package so can be used when loading packages
+
+#+begin_src emacs-lisp
+(use-package diminish
+  :ensure t)
+#+end_src
+   
 * Theme
 ** Cyberpunk theme
 
