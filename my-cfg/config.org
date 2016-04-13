@@ -87,7 +87,6 @@ The [[https://github.com/n3mo/cyberpunk-theme.el][cyberpunk theme]] is dark and 
   (load-theme 'jazz t))
 #+end_src
 
-
 ** Convenient theme functions
 
 #+begin_src emacs-lisp
@@ -484,12 +483,15 @@ For completion I use company mode
 
 * Helm
 
+Use helm everywhere.
+  
 #+begin_src emacs-lisp
 (use-package helm-core
   :ensure t
   :init
   (use-package helm
-    :ensure t)
+    :ensure t
+    :diminish (helm-mode . "H"))
   (use-package helm-company
     :ensure t)
   (use-package helm-mt
@@ -586,6 +588,7 @@ Source: http://stackoverflow.com/a/20064658/243392
 #+begin_src emacs-lisp
 (use-package elpy
   :ensure t
+  :diminish (elpy-mode . "Py")
   :init
   (elpy-enable)
   (elpy-use-ipython))
@@ -754,6 +757,7 @@ Projectile is a popular package, which helps manage projects in Emacs.
 #+begin_src emacs-lisp
 (use-package projectile
   :ensure t
+  :diminish (projectile-mode . "Proj")
   :init
   (projectile-global-mode)
   ;; integrate with neotree
