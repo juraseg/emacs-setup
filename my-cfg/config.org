@@ -517,6 +517,7 @@ Use helm everywhere.
 (define-key global-map [remap dabbrev-expand] 'helm-dabbrev)
 (define-key global-map [remap execute-extended-command] 'helm-M-x)
 (define-key global-map [remap info-emacs-manual] 'helm-info-emacs)
+(define-key global-map [remap switch-to-buffer] 'helm-buffers-list)
 (global-set-key (kbd "M-i") 'helm-imenu)
 (global-set-key (kbd "C-x C-d") 'helm-browse-project)
 
