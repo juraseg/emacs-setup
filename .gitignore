@@ -8,6 +8,7 @@ my-cfg/config.org.bak
 my-cfg/config.el
 my-cfg/private.*
 url/
+semanticdb/
 
 *~
 *.elc
@@ -23,3 +24,4 @@ session.*
 
 helm-doc.org
 helm-adaptive-history
+init.el.before_ecb*
