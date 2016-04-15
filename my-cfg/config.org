@@ -524,7 +524,11 @@ Use helm everywhere.
 (define-key global-map [remap switch-to-buffer] 'helm-buffers-list)
 (global-set-key (kbd "M-i") 'helm-imenu)
 (global-set-key (kbd "C-x C-d") 'helm-browse-project)
-
+(global-set-key (kbd "C-c h") 'helm-command-prefix)
+(global-unset-key (kbd "C-x c"))
+(define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action) ; rebind tab to run persistent action
+(define-key helm-map (kbd "C-i") 'helm-execute-persistent-action) ; make TAB works in terminal
+(define-key helm-map (kbd "C-z")  'helm-select-action) ; list actions using C-z
 
 (setq helm-ls-git-status-command 'magit-status-internal
       helm-apropos-fuzzy-match t
@@ -534,7 +538,8 @@ Use helm everywhere.
       helm-imenu-fuzzy-match t
       helm-recentf-fuzzy-match t
       helm-buffers-fuzzy-matching t
-      helm-org-headings-fontify t)
+      helm-org-headings-fontify t
+      helm-split-window-in-side-p t)
 
 (eval-after-load 'company
   '(progn
