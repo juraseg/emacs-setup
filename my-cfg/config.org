@@ -596,6 +596,13 @@ Source: http://stackoverflow.com/a/20064658/243392
 (global-set-key (kbd "M-;") 'comment-eclipse)
 #+end_src
 
+*** which-function mode
+
+Displays the current function name in mode line
+#+begin_src emacs-lisp
+(which-function-mode 1)
+#+end_src
+
 ** Python
 *** Elpy
 
